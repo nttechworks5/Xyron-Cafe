@@ -212,26 +212,35 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;ba
     transform:translateY(14px);
   }
 
-  /* ── FILM FRAMES ──
-     Each frame = 100vw × 100vh, no gap, no section borders.
-     Images fill the frame, mild parallax via JS translateY. */
-  .film-frame{
+  /* ── MOBILE AUTO-SLIDER ── */
+  .mob-slider-wrap{
     position:relative;
     width:100%;
     height:100vh;
     overflow:hidden;
-    /* CRITICAL: display block, no margin, no padding */
-    display:block;
+    background:var(--dark);
   }
-  .film-frame img{
+  .mob-slider-track{
+    display:flex;
+    width:fit-content;
+    height:100%;
+    will-change:transform;
+  }
+  .mob-slide{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .mob-slide img{
     position:absolute;
     inset:0;
     width:100%;
-    height:105%; /* slight extra height for parallax room */
+    height:100%;
     object-fit:cover;
-    will-change:transform;
     filter:brightness(.80) contrast(1.08) saturate(1.12);
-    transform:translateY(0);
+    transform:scale(1.05);
   }
 
   /* Progress dots (right side) */
@@ -258,6 +267,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;ba
     height:10px;
     border-radius:2px;
   }
+
 }
 
 /* ══════════════════════════════════
@@ -808,6 +818,14 @@ if(!IS_MOBILE){
 ═══════════════════════════════════════════════════════════════ */
 if(IS_MOBILE){
 
+  /* ═══════════════════════════════════════════════════════════════
+     MOBILE — AUTO-SLIDING CINEMATIC CAROUSELS
+     • Pre-menu slider: landing_mobile1.webp → landing_mobile28.webp
+     • Post-menu slider: aftermenu_mobile1.webp → aftermenu_mobile10.webp
+     • Fixed overlays with scene text
+     • Smooth GSAP auto-scroll animation
+  ═══════════════════════════════════════════════════════════════ */
+
   /* ── Build fixed PRE overlay ── */
   const preOverlay = document.createElement('div');
   preOverlay.id = 'mobileOverlayPre';
@@ -820,65 +838,45 @@ if(IS_MOBILE){
     </div>`;
   document.body.appendChild(preOverlay);
 
-  /* ── Build fixed POST overlay ── */
-  const postOverlay = document.createElement('div');
-  postOverlay.id = 'mobileOverlayPost';
-  postOverlay.innerHTML = `
-    <div class="mob-text" id="postText">
-      <div class="mob-tag">XYRON BREW — FINAL ACT</div>
-      <div class="mob-line"></div>
-      <div class="mob-title" id="postTitle">${SCENES_POST[0].t}</div>
-      <div class="mob-para"  id="postPara">${SCENES_POST[0].p}</div>
-    </div>`;
-  document.body.appendChild(postOverlay);
+
 
   /* ── Progress dots ── */
   const dotsEl = document.createElement('div');
   dotsEl.id = 'mobDots';
-  const DOT_COUNT = 10; // one dot per ~3 pre-frames
+  const DOT_COUNT = 10;
   for(let i=0;i<DOT_COUNT;i++){
     const d=document.createElement('div'); d.className='mob-dot'+(i===0?' on':'');
     dotsEl.appendChild(d);
   }
   document.body.appendChild(dotsEl);
 
-  /* ── Build PRE film frames into landingCont ── */
+  /* ── Build PRE auto-slider into landingCont ── */
   const lC = document.getElementById('landingCont');
   lC.style.display = 'block';
-  for(let i=1; i<=28; i++){
-    const frame = document.createElement('div');
-    frame.className = 'film-frame';
-    frame.dataset.idx = i-1; // 0-based
-    frame.innerHTML = `<img 
-      src="landing_mobile${i}.webp"
-      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80'"
-      alt="" loading="${i<=2?'eager':'lazy'}">`;
-    lC.appendChild(frame);
-  }
+  lC.className = 'mob-slider-wrap';
+  lC.innerHTML = `
+    <div class="mob-slider-track" id="preSliderTrack">
+      ${Array.from({length:28},(_,i)=>`
+        <div class="mob-slide" data-idx="${i}">
+          <img src="landing_mobile${i+1}.webp"
+            onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80'"
+            alt="" loading="${i<3?'eager':'lazy'}">
+        </div>
+      `).join('')}
+    </div>
+  `;
 
-  /* ── Build POST film frames into afterCont ── */
+  /* ── POST auto-slider removed per request ── */
   const aC = document.getElementById('afterCont');
-  aC.style.display = 'block';
-  for(let i=1; i<=10; i++){
-    const frame = document.createElement('div');
-    frame.className = 'film-frame';
-    frame.dataset.postIdx = i-1;
-    frame.innerHTML = `<img
-      src="aftermenu_mobile${i}.webp"
-      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80'"
-      alt="" loading="lazy">`;
-    aC.appendChild(frame);
-  }
+  aC.style.display = 'none';
 
   /* ── Refs ── */
   const preTextEl   = document.getElementById('preText');
   const preTitleEl  = document.getElementById('preTitle');
   const preParaEl   = document.getElementById('prePara');
-  const postTextEl  = document.getElementById('postText');
-  const postTitleEl = document.getElementById('postTitle');
-  const postParaEl  = document.getElementById('postPara');
-  const preFrames   = document.querySelectorAll('#landingCont .film-frame');
-  const postFrames  = document.querySelectorAll('#afterCont  .film-frame');
+  /* post overlay removed */
+  const preSlides   = document.querySelectorAll('#preSliderTrack .mob-slide');
+
   const dotEls      = document.querySelectorAll('#mobDots .mob-dot');
   const menuEl      = document.getElementById('menuSection');
   const menuIntroEl = document.querySelector('.menu-intro');
@@ -888,7 +886,7 @@ if(IS_MOBILE){
   let preVisible    = true;
   let postVisible   = false;
 
-  /* Crossfade text without hiding overlay */
+  /* Crossfade text */
   function swapText(titleEl, paraEl, blockEl, scene){
     blockEl.classList.add('fade');
     setTimeout(()=>{
@@ -898,110 +896,75 @@ if(IS_MOBILE){
     }, 300);
   }
 
+  /* ── Auto-slide animation for PRE slider ── */
+  const preTrack = document.getElementById('preSliderTrack');
+  let preCurrent = 0;
+  const preTotal = preSlides.length;
+  const preSlideW = () => window.innerWidth;
+
+  function animatePreSlider(){
+    preCurrent = (preCurrent + 1) % preTotal;
+    gsap.to(preTrack, {
+      x: -preCurrent * preSlideW(),
+      duration: 0.6,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        // Update scene text based on current slide
+        const sceneIdx = Math.min(Math.floor(preCurrent / 4), SCENES_PRE.length-1);
+        if(sceneIdx !== lastPreScene){
+          lastPreScene = sceneIdx;
+          swapText(preTitleEl, preParaEl, preTextEl, SCENES_PRE[sceneIdx]);
+        }
+        // Update dots
+        const dotIdx = Math.min(Math.floor(preCurrent / 3), dotEls.length-1);
+        dotEls.forEach((d,i) => d.classList.toggle('on', i===dotIdx));
+      }
+    });
+  }
+
+  /* ── Start auto-sliders ── */
+  let preInterval;
+
+  function startPreSlider(){
+    if(preInterval) clearInterval(preInterval);
+    preInterval = setInterval(animatePreSlider, 1200); // change every 1.2s
+  }
+  function stopPreSlider(){ if(preInterval) clearInterval(preInterval); }
+
+  startPreSlider();
+
+  /* ── Visibility check ── */
   function tick(){
     const vh = window.innerHeight;
-
-    /* Which pre-frame is centered in viewport? */
-    let activePreIdx = 0;
-    preFrames.forEach(f => {
-      const r = f.getBoundingClientRect();
-      // Parallax — FAST cinematic movement
-      const prog = (-r.top / vh) * 0.22; // 22% of height for dramatic effect
-      const img = f.querySelector('img');
-      if(img) img.style.transform = `translateY(${prog * 100}%)`;
-      // Most visible
-      if(Math.abs(r.top + r.height/2 - vh/2) < vh/2) activePreIdx = parseInt(f.dataset.idx);
-    });
-
-    /* Which post-frame? */
-    let activePostIdx = 0;
-    postFrames.forEach(f => {
-      const r = f.getBoundingClientRect();
-      const prog = (-r.top / vh) * 0.22; // FAST cinematic movement
-      const img = f.querySelector('img');
-      if(img) img.style.transform = `translateY(${prog * 100}%)`;
-      if(Math.abs(r.top + r.height/2 - vh/2) < vh/2) activePostIdx = parseInt(f.dataset.postIdx);
-    });
-
-    /* ── Is menu / menu-intro currently covering viewport? ── */
     const menuRect      = menuEl      ? menuEl.getBoundingClientRect()      : null;
     const menuIntroRect = menuIntroEl ? menuIntroEl.getBoundingClientRect() : null;
 
-    // Menu is "active" when it's overlapping the viewport significantly
     const menuActive =
       (menuRect      && menuRect.top      < vh * 0.6 && menuRect.bottom      > vh * 0.4) ||
       (menuIntroRect && menuIntroRect.top < vh * 0.6 && menuIntroRect.bottom > vh * 0.4);
 
-    // Post frames are in viewport?
-    const anyPostVisible = postFrames.length > 0 &&
-      Array.from(postFrames).some(f => {
-        const r = f.getBoundingClientRect();
-        return r.top < vh && r.bottom > 0;
-      });
+    // Pre slider visibility
+    const preRect = lC.getBoundingClientRect();
+    const preInView = preRect.top < vh && preRect.bottom > 0;
 
-    /* ── PRE overlay: show when pre-frames visible, hide at menu ── */
-    const anyPreVisible = preFrames.length > 0 &&
-      Array.from(preFrames).some(f => {
-        const r = f.getBoundingClientRect();
-        return r.top < vh && r.bottom > 0;
-      });
-
-    if(anyPreVisible && !menuActive){
-      if(!preVisible){ preOverlay.classList.remove('hide'); preVisible=true; }
+    if(preInView && !menuActive){
+      if(!preVisible){ preOverlay.classList.remove('hide'); preVisible=true; startPreSlider(); }
     } else {
-      if(preVisible){ preOverlay.classList.add('hide'); preVisible=false; }
+      if(preVisible){ preOverlay.classList.add('hide'); preVisible=false; stopPreSlider(); }
     }
 
-    /* ── POST overlay: show only when post-frames are visible ── */
-    if(anyPostVisible && !menuActive){
-      if(!postVisible){ postOverlay.classList.add('show'); postVisible=true; dotsEl.style.display='none'; }
-    } else {
-      if(postVisible && !anyPostVisible){ postOverlay.classList.remove('show'); postVisible=false; }
-    }
-
-    /* ── Hide dots when menu is visible ── */
-    dotsEl.style.display = (menuActive || anyPostVisible) ? 'none' : 'flex';
-
-    /* ── Update pre scene text ── */
-    const preSceneIdx = Math.min(Math.floor(activePreIdx / 4), SCENES_PRE.length-1);
-    if(preSceneIdx !== lastPreScene){
-      lastPreScene = preSceneIdx;
-      swapText(preTitleEl, preParaEl, preTextEl, SCENES_PRE[preSceneIdx]);
-      // dots
-      const dotIdx = Math.min(Math.floor(activePreIdx / 3), dotEls.length-1);
-      dotEls.forEach((d,i) => d.classList.toggle('on', i===dotIdx));
-    }
-
-    /* ── Update post scene text ── */
-    const postSceneIdx = Math.min(activePostIdx, SCENES_POST.length-1);
-    if(postSceneIdx !== lastPostScene){
-      lastPostScene = postSceneIdx;
-      swapText(postTitleEl, postParaEl, postTextEl, SCENES_POST[postSceneIdx]);
-    }
+    dotsEl.style.display = menuActive ? 'none' : 'flex';
   }
 
-  /* rAF loop — runs every frame, super smooth */
+  /* rAF loop */
   let rafId;
   function loop(){ tick(); rafId = requestAnimationFrame(loop); }
   loop();
 
-  /* Lazy-load approaching frames */
-  if('IntersectionObserver' in window){
-    const lazy = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if(e.isIntersecting){
-          const img = e.target.querySelector('img');
-          if(img && img.getAttribute('loading')==='lazy'){
-            img.setAttribute('loading','eager');
-            // Force browser to load by setting src again
-            const src = img.src; img.src=''; img.src=src;
-          }
-          lazy.unobserve(e.target);
-        }
-      });
-    }, {rootMargin:'150% 0px'});
-    document.querySelectorAll('.film-frame').forEach(f => lazy.observe(f));
-  }
+  /* Handle resize */
+  window.addEventListener('resize', () => {
+    gsap.set(preTrack, {x: -preCurrent * preSlideW()});
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
