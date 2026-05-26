@@ -833,8 +833,8 @@ if(IS_MOBILE){
     <div class="mob-text" id="preText">
       <div class="mob-tag">XYRON BREW</div>
       <div class="mob-line"></div>
-      <div class="mob-title" id="preTitle">${SCENES_PRE[0].t}</div>
-      <div class="mob-para"  id="prePara">${SCENES_PRE[0].p}</div>
+      <div class="mob-title" id="preTitle">${SCENES_PRE[3].t}</div>
+      <div class="mob-para"  id="prePara">${SCENES_PRE[3].p}</div>
     </div>`;
   document.body.appendChild(preOverlay);
 
@@ -910,7 +910,7 @@ if(IS_MOBILE){
       ease: 'power2.inOut',
       onComplete: () => {
         // Update scene text based on current slide
-        const sceneIdx = Math.min(Math.floor(preCurrent / 4), SCENES_PRE.length-1);
+        const sceneIdx = Math.min(Math.floor(preCurrent / 4) + 3, SCENES_PRE.length-1);
         if(sceneIdx !== lastPreScene){
           lastPreScene = sceneIdx;
           swapText(preTitleEl, preParaEl, preTextEl, SCENES_PRE[sceneIdx]);
