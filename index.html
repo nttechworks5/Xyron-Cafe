@@ -122,9 +122,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;ba
   .dwrd.on{opacity:1;transform:translateY(0);filter:blur(0);transition:opacity .75s cubic-bezier(.25,.46,.45,.94),transform .75s,filter .75s;}
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════
    MOBILE — FILM STRIP (continuous scroll, no sections)
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════════ */
 @media(max-width:768px){
   /* Hide desktop cinematic sections entirely */
   .cinematic{display:none!important;}
@@ -354,9 +354,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;ba
 .card-receive-flash{position:absolute;inset:0;background:rgba(200,169,110,.1);border-radius:24px;opacity:0;pointer-events:none;z-index:50;}
 
 /* FORM */
-.form-overlay{position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.94);display:flex;align-items:flex-start;justify-content:center;opacity:0;pointer-events:none;transition:opacity .45s;backdrop-filter:blur(22px);padding:20px 0;overflow-y:auto;}
+.form-overlay{position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.94);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .45s;backdrop-filter:blur(22px);padding:0;overflow:hidden;}
 .form-overlay.on{opacity:1;pointer-events:auto;}
-.form-box{width:min(510px,93vw);background:rgba(10,9,16,.98);border:1px solid rgba(200,169,110,.18);border-radius:28px;padding:44px;position:relative;max-height:none;overflow-y:visible;margin:auto 0;}
+.form-box{width:min(510px,92vw);background:rgba(10,9,16,.98);border:1px solid rgba(200,169,110,.18);border-radius:28px 28px 0 0;padding:44px;position:relative;max-height:85vh;overflow-y:scroll;overflow-x:hidden;margin:0;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(200,169,110,.3) transparent;will-change:transform;}
+.form-box::-webkit-scrollbar{width:4px;}
+.form-box::-webkit-scrollbar-track{background:transparent;}
+.form-box::-webkit-scrollbar-thumb{background:rgba(200,169,110,.3);border-radius:4px;}
 .form-box h2{font-family:'Playfair Display',serif;font-size:2.6rem;margin-bottom:5px;font-weight:400;font-style:italic;}
 .form-box .form-sub{color:rgba(200,169,110,.65);font-size:.8rem;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:28px;}
 .form-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.28s;font-size:1rem;}
@@ -375,7 +378,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;ba
 .form-field textarea{resize:vertical;min-height:76px;}
 .form-field select option{background:#111;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:600px){.form-row{grid-template-columns:1fr;}.form-box{padding:22px 18px;}}
+@media(max-width:600px){
+  .form-overlay{align-items:flex-end;padding:0;}
+  .form-box{width:100%;max-height:90vh;margin:0;border-radius:24px 24px 0 0;padding:28px 20px 32px;animation:formSlideUp .35s cubic-bezier(.34,1.56,.64,1);overflow-y:scroll;}
+  @keyframes formSlideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  .form-box h2{font-size:2rem;}
+  .form-box .form-sub{font-size:.72rem;margin-bottom:20px;}
+  .form-order-summary{padding:14px;margin-bottom:18px;}
+  .form-field{margin-bottom:14px;}
+  .form-field input,.form-field textarea,.form-field select{padding:12px 14px;font-size:16px;}
+  .form-row{grid-template-columns:1fr;gap:10px;}
+  .btn-submit{padding:15px;font-size:.92rem;margin-top:4px;}
+  .form-close{top:12px;right:12px;width:40px;height:40px;}
+  .form-note{font-size:.68rem;margin-top:10px;}
+}
+@media(max-width:380px){
+  .form-box{padding:24px 16px 28px;max-height:90vh;}
+  .form-box h2{font-size:1.7rem;}
+  .card-body h2{font-size:1.5rem;}
+}
 .btn-submit{width:100%;padding:17px;border:none;border-radius:999px;background:var(--gold);color:#000;font-weight:700;font-size:.95rem;cursor:pointer;transition:.38s;margin-top:7px;font-family:'DM Sans',sans-serif;}
 .btn-submit:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(200,169,110,.38);}
 .form-note{text-align:center;font-size:.72rem;color:rgba(255,255,255,.22);margin-top:13px;line-height:1.85;}
@@ -435,6 +456,7 @@ footer p{color:#7a746e;line-height:2;font-size:.88rem;}
 }
 </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -492,7 +514,7 @@ footer p{color:#7a746e;line-height:2;font-size:.88rem;}
 
 <div class="menu-overlay" id="mOverlay"></div>
 
-<div class="form-overlay" id="formOverlay">
+<div class="form-overlay" id="formOverlay" style="display:none;">
   <div class="form-box">
     <button class="form-close" id="formClose">✕</button>
     <h2>Your Details</h2>
@@ -1107,31 +1129,23 @@ function collapseCard(){
 document.querySelectorAll('.card-back').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); collapseCard();}));
 mOverlay.addEventListener('click', collapseCard);
 
-/* ORDER FORM */
-document.getElementById('btnPlace').addEventListener('click',()=>{cartPanel.classList.remove('on'); openOrderForm();});
-function openOrderForm(){
-  document.getElementById('fosItems').innerHTML = Object.values(cart).map(i=>
-    `<div class="fos-item"><span>${i.name} ×${i.qty}</span><span>₹${i.price*i.qty}</span></div>`).join('');
-  document.getElementById('fosTotal').innerText='₹'+getCartTotal();
-  document.getElementById('formOverlay').classList.add('on'); lenis.stop();
-}
-document.getElementById('formClose').addEventListener('click',()=>{
-  document.getElementById('formOverlay').classList.remove('on'); lenis.start();
+/* ORDER - DIRECT TO WHATSAPP */
+document.getElementById('btnPlace').addEventListener('click',()=>{
+  cartPanel.classList.remove('on'); 
+  sendOrderDirect();
 });
-document.getElementById('btnSubmit').addEventListener('click',()=>{
-  const name=document.getElementById('fName').value.trim();
-  const phone=document.getElementById('fPhone').value.trim();
-  const addr=document.getElementById('fAddr').value.trim();
-  if(!name||!phone||!addr){showToast('Please fill in Name, Phone & Address'); return;}
-  const time=document.getElementById('fTime').value, pay=document.getElementById('fPay').value;
-  const note=document.getElementById('fNote').value;
+
+function sendOrderDirect(){
+  if(getCartCount() === 0){showToast('Cart is empty'); return;}
+  
   const orderId='XY-'+Math.floor(1000+Math.random()*9000);
   const items=Object.values(cart).map(i=>`• ${i.name} ×${i.qty} = ₹${i.price*i.qty}`).join('\n');
-  const msg=`☕ *XYRON BREW ORDER*\n\nOrder: #${orderId}\nName: ${name}\nPhone: ${phone}\nAddress: ${addr}\nTime: ${time}\nPayment: ${pay}\n${note?'Note: '+note+'\n':''}\n${items}\n\n*Total: ₹${getCartTotal()}*\n\nSent via Xyron Brew website`;
+  const msg=`☕ *XYRON BREW ORDER*\n\nOrder: #${orderId}\n${items}\n\n*Total: ₹${getCartTotal()}*\n\nSent via Xyron Brew website`;
   const waUrl='https://wa.me/919626782279?text='+encodeURIComponent(msg);
-  document.getElementById('formOverlay').classList.remove('on');
-  cart={}; renderCart(); showSuccess(orderId,waUrl);
-});
+  
+  cart={}; renderCart(); 
+  showSuccess(orderId, waUrl);
+}
 
 function showSuccess(orderId,waUrl){
   document.getElementById('successOrderId').innerText='ORDER #'+orderId;
